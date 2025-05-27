@@ -67,10 +67,18 @@
         border-radius: 8px;
         cursor: pointer;
         text-align: center;
+        position: relative;
     }
     .day-card:hover {
         background-color: var(--verde-claro);
         color: white;
+    }
+    .icon-red {
+        color: var(--vermelho);
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 18px;
     }
     .hour {
         background-color: var(--cinza);
@@ -159,7 +167,7 @@
     let selectedCollaborator = '';
     let selectedDate = '';
     let selectedHour = '';
-    const apiUrl = "https://script.google.com/macros/s/AKfycbx8A9qWcY2eyI18d2aTmYja8QLtR0DhSmUfHq24QZPp3uq9a8I48NpEdhxXB_sNgl1o/exec";
+    const agendamentos = {};
 
     function selectCollaborator(nome) {
         selectedCollaborator = nome;
@@ -195,7 +203,9 @@
 
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${month+1}-${d}`;
-            grid.innerHTML += `<div class='day-card' onclick="openDay('${dateStr}')">${d}</div>`;
+            const hasAvailable = horarios.some(h => !agendamentos[`${selectedCollaborator}-${dateStr}-${h}`]);
+            const icon = hasAvailable ? '' : '<div class="icon-red">🔴</div>';
+            grid.innerHTML += `<div class='day-card' onclick="openDay('${dateStr}')">${icon}${d}</div>`;
         }
 
         calendar.appendChild(grid);
@@ -204,7 +214,7 @@
     function showWeek() {
         clearScreens();
         const weekView = document.getElementById('weekView');
-        weekView.innerHTML = '<h2>Semana</h2>';
+        weekView.innerHTML = '<h2>Semana Atual</h2>';
         weekView.classList.remove('hidden');
         document.getElementById('backButton').classList.remove('hidden');
 
@@ -224,13 +234,33 @@
         grid.className = 'week-grid';
 
         weekDates.forEach(day => {
+            const column = document.createElement('div');
+            const header = document.createElement('div');
+            header.className = 'header-cell';
+            header.innerText = day.label;
+            column.appendChild(header);
+
+            let available = false;
             horarios.forEach(hora => {
-                const btn = document.createElement('div');
-                btn.className = 'hour';
-                btn.innerText = `${day.label} ${hora}`;
-                btn.onclick = () => selectHour(day.dateStr, hora);
-                grid.appendChild(btn);
+                const key = `${selectedCollaborator}-${day.dateStr}-${hora}`;
+                if (!agendamentos[key]) {
+                    available = true;
+                    const btn = document.createElement('div');
+                    btn.className = 'hour';
+                    btn.innerText = hora;
+                    btn.onclick = () => selectHour(day.dateStr, hora);
+                    column.appendChild(btn);
+                }
             });
+
+            if (!available) {
+                const noAvailable = document.createElement('div');
+                noAvailable.className = 'no-available';
+                noAvailable.innerHTML = '🔴';
+                column.appendChild(noAvailable);
+            }
+
+            grid.appendChild(column);
         });
 
         weekView.appendChild(grid);
@@ -240,14 +270,26 @@
         clearScreens();
         const dayHours = document.getElementById('dayHours');
         dayHours.innerHTML = `<h2>Horários do dia ${dateStr}</h2>`;
+        let available = false;
 
         horarios.forEach(hora => {
-            const hourBtn = document.createElement('div');
-            hourBtn.className = 'hour';
-            hourBtn.innerText = hora;
-            hourBtn.onclick = () => selectHour(dateStr, hora);
-            dayHours.appendChild(hourBtn);
+            const key = `${selectedCollaborator}-${dateStr}-${hora}`;
+            if (!agendamentos[key]) {
+                available = true;
+                const hourBtn = document.createElement('div');
+                hourBtn.className = 'hour';
+                hourBtn.innerText = hora;
+                hourBtn.onclick = () => selectHour(dateStr, hora);
+                dayHours.appendChild(hourBtn);
+            }
         });
+
+        if (!available) {
+            const noAvailable = document.createElement('div');
+            noAvailable.className = 'no-available';
+            noAvailable.innerText = '🔴 Sem horário disponível';
+            dayHours.appendChild(noAvailable);
+        }
 
         const back = document.createElement('div');
         back.className = 'back-button';
@@ -263,7 +305,7 @@
         document.getElementById('form').style.display = 'flex';
     }
 
-    async function book() {
+    function book() {
         const nome = document.getElementById('nome').value.trim();
         const empreendimento = document.getElementById('empreendimento').value.trim();
         const local = document.getElementById('local').value.trim();
@@ -273,33 +315,10 @@
             return;
         }
 
-        const data = {
-            colaborador: selectedCollaborator,
-            data: selectedDate,
-            hora: selectedHour,
-            nome,
-            empreendimento,
-            local
-        };
+        const key = `${selectedCollaborator}-${selectedDate}-${selectedHour}`;
+        agendamentos[key] = { nome, empreendimento, local };
 
-        try {
-            const res = await fetch(apiUrl, {
-                method: "POST",
-                body: JSON.stringify(data),
-                headers: { "Content-Type": "application/json" }
-            });
-
-            const result = await res.json();
-            if (result.result === "Sucesso") {
-                alert("Agendado com sucesso!");
-            } else {
-                alert("Erro ao agendar.");
-            }
-        } catch (error) {
-            alert("Erro ao enviar para o banco de dados.");
-            console.error(error);
-        }
-
+        alert('Agendado com sucesso!');
         document.getElementById('form').style.display = 'none';
         document.getElementById('nome').value = '';
         document.getElementById('empreendimento').value = '';
