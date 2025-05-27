@@ -12,14 +12,21 @@
         --cinza: #e0e0e0;
         --vermelho: #e74c3c;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
     body {
         background-color: var(--branco);
         font-family: Arial, sans-serif;
         color: var(--verde-principal);
         padding: 20px;
     }
-    h1, h2 { text-align: center; margin-bottom: 20px; }
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
     .card-container {
         display: flex;
         justify-content: center;
@@ -32,14 +39,21 @@
         padding: 20px;
         border-radius: 12px;
         cursor: pointer;
-        width: 180px;
+        width: 200px;
         text-align: center;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         transition: transform 0.3s;
     }
-    .card:hover { transform: scale(1.05); }
-    .hidden { display: none; }
-    .selector, .back-button { margin-top: 20px; text-align: center; }
+    .card:hover {
+        transform: scale(1.05);
+    }
+    .hidden {
+        display: none;
+    }
+    .selector, .back-button {
+        margin-top: 20px;
+        text-align: center;
+    }
     .selector button, .back-button button {
         background-color: var(--verde-claro);
         color: white;
@@ -52,36 +66,40 @@
     .selector button:hover, .back-button button:hover {
         background-color: var(--verde-principal);
     }
+    .week, .calendar {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    .week-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 5px;
+    }
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 10px;
+        gap: 5px;
     }
     .header-cell {
         font-weight: bold;
         text-align: center;
     }
-    .day-card {
-        background-color: var(--cinza);
-        padding: 15px;
-        border-radius: 8px;
-        cursor: pointer;
-        text-align: center;
-    }
-    .day-card:hover {
-        background-color: var(--verde-claro);
-        color: white;
-    }
-    .hour {
+    .day, .hour {
         background-color: var(--cinza);
         padding: 10px;
         border-radius: 8px;
         cursor: pointer;
         text-align: center;
-        margin: 5px;
     }
-    .hour:hover {
+    .day:hover, .hour:hover {
         background-color: var(--verde-claro);
+        color: white;
+    }
+    .selected {
+        background-color: var(--verde-principal) !important;
         color: white;
     }
     .form {
@@ -117,17 +135,12 @@
         text-align: center;
         margin-top: 10px;
     }
-    .week-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 10px;
-        margin-top: 20px;
-    }
 </style>
 </head>
 <body>
 
 <h1>Agendamento de Vistorias</h1>
+
 <div class="card-container" id="collaborators">
     <div class="card" onclick="selectCollaborator('Cleber')">Cleber</div>
     <div class="card" onclick="selectCollaborator('Devilson')">Devilson</div>
@@ -143,9 +156,8 @@
     <button onclick="goBack()">⬅ Voltar</button>
 </div>
 
+<div class="week hidden" id="week"></div>
 <div class="calendar hidden" id="calendar"></div>
-<div class="day-hours hidden" id="dayHours"></div>
-<div class="week-view hidden" id="weekView"></div>
 
 <div class="form" id="form">
     <input type="text" id="nome" placeholder="Nome do responsável">
@@ -160,13 +172,53 @@
     let selectedDate = '';
     let selectedHour = '';
     const agendamentos = {};
-    const apiUrl = "https://script.google.com/macros/s/AKfycbwSmzt8wTuYDF3eTMw57X8Hhu-Ybs6Od5udOBIsqoFZz1q4O1YTDrhcF8ruffYfBhJC/exec";
 
     function selectCollaborator(nome) {
         selectedCollaborator = nome;
         document.getElementById('collaborators').classList.add('hidden');
         document.getElementById('selector').classList.remove('hidden');
-        document.getElementById('selectedCollaborator').innerText = Agendamento - ${nome};
+        document.getElementById('selectedCollaborator').innerText = `Agendamento - ${nome}`;
+    }
+
+    function showWeek() {
+        clearScreens();
+        const week = document.getElementById('week');
+        week.innerHTML = '';
+        week.classList.remove('hidden');
+        document.getElementById('backButton').classList.remove('hidden');
+
+        const today = new Date();
+        const start = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+
+        const grid = document.createElement('div');
+        grid.className = 'week-grid';
+        grid.style.gridTemplateRows = `auto repeat(${horarios.length}, auto)`;
+
+        grid.innerHTML += `<div class="header-cell"></div>`;
+        for (let i = 0; i < 5; i++) {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            const label = `<div class="header-cell">${d.getDate()}/${d.getMonth()+1} (${['Seg','Ter','Qua','Qui','Sex'][i]})</div>`;
+            grid.innerHTML += label;
+        }
+
+        for (const hora of horarios) {
+            grid.innerHTML += `<div class="header-cell">${hora}</div>`;
+            for (let i = 0; i < 5; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                const dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+
+                const key = `${selectedCollaborator}-${dateStr}-${hora}`;
+                if (agendamentos[key]) {
+                    grid.innerHTML += `<div class="hour" style="visibility:hidden"></div>`;
+                } else {
+                    grid.innerHTML += `<div class="hour" onclick="selectHour('${dateStr}','${hora}')">${hora}</div>`;
+                }
+            }
+        }
+
+        week.appendChild(grid);
     }
 
     function showMonth() {
@@ -187,75 +239,55 @@
 
         const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
         for (const day of weekDays) {
-            grid.innerHTML += <div class='header-cell'>${day}</div>;
+            grid.innerHTML += `<div class="header-cell">${day}</div>`;
         }
 
         for (let i = 0; i < firstDay; i++) {
-            grid.innerHTML += <div></div>;
+            grid.innerHTML += `<div></div>`;
         }
 
         for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = ${year}-${month+1}-${d};
-            grid.innerHTML += <div class='day-card' onclick="openDay('${dateStr}')">${d}</div>;
+            const dateStr = `${year}-${month+1}-${d}`;
+            grid.innerHTML += `<div class="day" onclick="openDay('${dateStr}', this)">${d}</div>`;
         }
 
         calendar.appendChild(grid);
     }
 
-    function showWeek() {
-        clearScreens();
-        const weekView = document.getElementById('weekView');
-        weekView.innerHTML = '<h2>Semana</h2>';
-        weekView.classList.remove('hidden');
-        document.getElementById('backButton').classList.remove('hidden');
-
-        const today = new Date();
-        const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
-        const weekDates = [];
-
-        today.setDate(today.getDate() - today.getDay() + 1);
-        for (let i = 0; i < 5; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() + i);
-            const dateStr = ${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()};
-            weekDates.push({ label: weekDays[i], dateStr });
+    function openDay(dateStr, btn) {
+        const existing = document.getElementById('hours-' + dateStr);
+        if (existing) {
+            existing.remove();
+            btn.classList.remove('selected');
+            return;
         }
 
-        const grid = document.createElement('div');
-        grid.className = 'week-grid';
+        const row = document.createElement('div');
+        row.className = 'day-row';
+        row.id = 'hours-' + dateStr;
 
-        weekDates.forEach(day => {
-            horarios.forEach(hora => {
-                const btn = document.createElement('div');
-                btn.className = 'hour';
-                btn.innerText = ${day.label} ${hora};
-                btn.onclick = () => selectHour(day.dateStr, hora);
-                grid.appendChild(btn);
-            });
-        });
+        let available = false;
+        for (const hora of horarios) {
+            const key = `${selectedCollaborator}-${dateStr}-${hora}`;
+            if (!agendamentos[key]) {
+                available = true;
+                const hourBtn = document.createElement('div');
+                hourBtn.className = 'hour';
+                hourBtn.innerText = hora;
+                hourBtn.onclick = () => selectHour(dateStr, hora);
+                row.appendChild(hourBtn);
+            }
+        }
 
-        weekView.appendChild(grid);
-    }
+        if (!available) {
+            const noAvailable = document.createElement('div');
+            noAvailable.className = 'no-available';
+            noAvailable.innerText = '🔴 Sem horário disponível';
+            row.appendChild(noAvailable);
+        }
 
-    function openDay(dateStr) {
-        clearScreens();
-        const dayHours = document.getElementById('dayHours');
-        dayHours.innerHTML = <h2>Horários do dia ${dateStr}</h2>;
-
-        horarios.forEach(hora => {
-            const hourBtn = document.createElement('div');
-            hourBtn.className = 'hour';
-            hourBtn.innerText = hora;
-            hourBtn.onclick = () => selectHour(dateStr, hora);
-            dayHours.appendChild(hourBtn);
-        });
-
-        const back = document.createElement('div');
-        back.className = 'back-button';
-        back.innerHTML = <button onclick="showMonth()">⬅ Voltar para o Calendário</button>;
-        dayHours.appendChild(back);
-
-        dayHours.classList.remove('hidden');
+        btn.classList.add('selected');
+        btn.parentNode.after(row);
     }
 
     function selectHour(date, hour) {
@@ -264,7 +296,7 @@
         document.getElementById('form').style.display = 'flex';
     }
 
-    async function book() {
+    function book() {
         const nome = document.getElementById('nome').value.trim();
         const empreendimento = document.getElementById('empreendimento').value.trim();
         const local = document.getElementById('local').value.trim();
@@ -274,40 +306,16 @@
             return;
         }
 
-        const data = {
-            colaborador: selectedCollaborator,
-            data: selectedDate,
-            hora: selectedHour,
-            nome,
-            empreendimento,
-            local
-        };
+        const key = `${selectedCollaborator}-${selectedDate}-${selectedHour}`;
+        agendamentos[key] = { nome, empreendimento, local };
 
-        try {
-            const res = await fetch(apiUrl, {
-                method: "POST",
-                body: JSON.stringify(data),
-                headers: { "Content-Type": "application/json" }
-            });
-
-            const result = await res.json();
-            if (result.result === "Sucesso") {
-                alert("Agendado com sucesso!");
-            } else {
-                alert("Erro ao agendar.");
-            }
-        } catch (error) {
-            alert("Erro ao enviar para o banco de dados.");
-            console.error(error);
-        }
-
+        alert('Agendado com sucesso!');
         document.getElementById('form').style.display = 'none';
         document.getElementById('nome').value = '';
         document.getElementById('empreendimento').value = '';
         document.getElementById('local').value = '';
-
-        clearScreens();
-        document.getElementById('selector').classList.remove('hidden');
+        showWeek();
+        showMonth();
     }
 
     function goBack() {
@@ -317,49 +325,16 @@
     }
 
     function clearScreens() {
+        document.getElementById('week').classList.add('hidden');
         document.getElementById('calendar').classList.add('hidden');
-        document.getElementById('dayHours').classList.add('hidden');
-        document.getElementById('weekView').classList.add('hidden');
         document.getElementById('form').style.display = 'none';
+
+        const opened = document.querySelectorAll('.day-row');
+        opened.forEach(el => el.remove());
+        const days = document.querySelectorAll('.day');
+        days.forEach(el => el.classList.remove('selected'));
     }
 </script>
 
 </body>
-</html> 
-
-Em seguida criei a planilha no google sheets com as colunas:
-Data/Hora	Colaborador	Data	Hora	Nome	Empreendimento	Local
-
-No app script foi inserido o código:
-function doPost(e) {
-  const sheet = SpreadsheetApp.openById('https://docs.google.com/spreadsheets/d/1vhTFcwq6i75O1y-ag6xzECubiCJlCv3ym5mt__4sX8c/').getSheetByName('Agendamentos');
-  
-  const data = JSON.parse(e.postData.contents);
-  
-  sheet.appendRow([
-    new Date(),
-    data.colaborador,
-    data.data,
-    data.hora,
-    data.nome,
-    data.empreendimento,
-    data.local
-  ]);
-  
-  return ContentService
-    .createTextOutput(JSON.stringify({ result: "Sucesso" }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doGet(e) {
-  return ContentService
-    .createTextOutput("API funcionando")
-    .setMimeType(ContentService.MimeType.TEXT);
-} 
-
-Em implementação tem 4 versões a ultima que eu utilizei:
- ID DE IMPLEMENTAÇÃO:
-AKfycbwSmzt8wTuYDF3eTMw57X8Hhu-Ybs6Od5udOBIsqoFZz1q4O1YTDrhcF8ruffYfBhJC
-
-URL:
-https://script.google.com/macros/s/AKfycbweReU06we2WD-Lpi4WapqYuI4K-ObM25A876Cw13KMy6LtTToUOoB0RuyNU-8y6c51/exec 
+</html>
