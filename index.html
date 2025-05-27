@@ -1,173 +1,11 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agendamento de Vistorias</title>
-<style>
-    :root {
-        --verde-principal: rgb(52, 69, 55);
-        --verde-claro: rgb(72, 95, 75);
-        --branco: #f5f5f5;
-        --cinza: #e0e0e0;
-        --vermelho: #e74c3c;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-        background-color: var(--branco);
-        font-family: Arial, sans-serif;
-        color: var(--verde-principal);
-        padding: 20px;
-    }
-    h1, h2 { text-align: center; margin-bottom: 20px; }
-    .card-container {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-    .card {
-        background-color: var(--verde-principal);
-        color: var(--branco);
-        padding: 20px;
-        border-radius: 12px;
-        cursor: pointer;
-        width: 180px;
-        text-align: center;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        transition: transform 0.3s;
-    }
-    .card:hover { transform: scale(1.05); }
-    .hidden { display: none; }
-    .selector, .back-button { margin-top: 20px; text-align: center; }
-    .selector button, .back-button button {
-        background-color: var(--verde-claro);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        margin: 5px;
-    }
-    .selector button:hover, .back-button button:hover {
-        background-color: var(--verde-principal);
-    }
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 10px;
-    }
-    .header-cell {
-        font-weight: bold;
-        text-align: center;
-    }
-    .day-card {
-        background-color: var(--cinza);
-        padding: 15px;
-        border-radius: 8px;
-        cursor: pointer;
-        text-align: center;
-        position: relative;
-    }
-    .day-card:hover {
-        background-color: var(--verde-claro);
-        color: white;
-    }
-    .icon-red {
-        color: var(--vermelho);
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        font-size: 18px;
-    }
-    .hour {
-        background-color: var(--cinza);
-        padding: 10px;
-        border-radius: 8px;
-        cursor: pointer;
-        text-align: center;
-        margin: 5px;
-    }
-    .hour:hover {
-        background-color: var(--verde-claro);
-        color: white;
-    }
-    .form {
-        margin-top: 20px;
-        display: none;
-        flex-direction: column;
-        gap: 10px;
-        max-width: 400px;
-        margin-left: auto;
-        margin-right: auto;
-        background-color: var(--cinza);
-        padding: 20px;
-        border-radius: 12px;
-    }
-    .form input {
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-    }
-    .form button {
-        background-color: var(--verde-principal);
-        color: white;
-        border: none;
-        padding: 10px;
-        border-radius: 8px;
-        cursor: pointer;
-    }
-    .form button:hover {
-        background-color: var(--verde-claro);
-    }
-    .no-available {
-        color: var(--vermelho);
-        text-align: center;
-        margin-top: 10px;
-    }
-    .week-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 10px;
-        margin-top: 20px;
-    }
-</style>
-</head>
-<body>
-
-<h1>Agendamento de Vistorias</h1>
-<div class="card-container" id="collaborators">
-    <div class="card" onclick="selectCollaborator('Cleber')">Cleber</div>
-    <div class="card" onclick="selectCollaborator('Devilson')">Devilson</div>
-</div>
-
-<div class="selector hidden" id="selector">
-    <h2 id="selectedCollaborator"></h2>
-    <button onclick="showWeek()">Semana</button>
-    <button onclick="showMonth()">Mês</button>
-</div>
-
-<div class="back-button hidden" id="backButton">
-    <button onclick="goBack()">⬅ Voltar</button>
-</div>
-
-<div class="calendar hidden" id="calendar"></div>
-<div class="day-hours hidden" id="dayHours"></div>
-<div class="week-view hidden" id="weekView"></div>
-
-<div class="form" id="form">
-    <input type="text" id="nome" placeholder="Nome do responsável">
-    <input type="text" id="empreendimento" placeholder="Empreendimento">
-    <input type="text" id="local" placeholder="Local (Ex: Ap 101)">
-    <button onclick="book()">Agendar</button>
-</div>
-
 <script>
     const horarios = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00"];
     let selectedCollaborator = '';
     let selectedDate = '';
     let selectedHour = '';
     const agendamentos = {};
+
+    const apiUrl = "https://script.google.com/macros/s/AKfycbwSmzt8wTuYDF3eTMw57X8Hhu-Ybs6Od5udOBIsqoFZz1q4O1YTDrhcF8ruffYfBhJC/exec";
 
     function selectCollaborator(nome) {
         selectedCollaborator = nome;
@@ -202,7 +40,7 @@
         }
 
         for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = `${year}-${month+1}-${d}`;
+            const dateStr = `${year}-${month + 1}-${d}`;
             const hasAvailable = horarios.some(h => !agendamentos[`${selectedCollaborator}-${dateStr}-${h}`]);
             const icon = hasAvailable ? '' : '<div class="icon-red">🔴</div>';
             grid.innerHTML += `<div class='day-card' onclick="openDay('${dateStr}')">${icon}${d}</div>`;
@@ -318,14 +156,37 @@
         const key = `${selectedCollaborator}-${selectedDate}-${selectedHour}`;
         agendamentos[key] = { nome, empreendimento, local };
 
-        alert('Agendado com sucesso!');
+        const data = {
+            colaborador: selectedCollaborator,
+            data: selectedDate,
+            hora: selectedHour,
+            nome: nome,
+            empreendimento: empreendimento,
+            local: local
+        };
+
+        fetch(apiUrl + `?colaborador=${encodeURIComponent(data.colaborador)}&data=${encodeURIComponent(data.data)}&hora=${encodeURIComponent(data.hora)}&nome=${encodeURIComponent(data.nome)}&empreendimento=${encodeURIComponent(data.empreendimento)}&local=${encodeURIComponent(data.local)}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(result => {
+            alert('Agendado com sucesso!');
+            clearForm();
+        })
+        .catch(error => {
+            alert('Erro ao salvar no banco de dados.');
+            console.error('Erro:', error);
+        });
+
+        clearScreens();
+        document.getElementById('selector').classList.remove('hidden');
+    }
+
+    function clearForm() {
         document.getElementById('form').style.display = 'none';
         document.getElementById('nome').value = '';
         document.getElementById('empreendimento').value = '';
         document.getElementById('local').value = '';
-
-        clearScreens();
-        document.getElementById('selector').classList.remove('hidden');
     }
 
     function goBack() {
@@ -341,6 +202,3 @@
         document.getElementById('form').style.display = 'none';
     }
 </script>
-
-</body>
-</html>
