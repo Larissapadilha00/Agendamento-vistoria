@@ -112,6 +112,11 @@
     .form button:hover {
         background-color: var(--verde-claro);
     }
+    .no-available {
+        color: var(--vermelho);
+        text-align: center;
+        margin-top: 10px;
+    }
     .week-grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
@@ -154,13 +159,14 @@
     let selectedCollaborator = '';
     let selectedDate = '';
     let selectedHour = '';
-    const apiUrl = "https://script.google.com/macros/s/AKfycby3GeOi7ja0oaBBTdmTMsmtaYW4CDYAycWEMZwQLW11a8PLjCuUO767SCZ9Y2b8UGg/exec";
+    const agendamentos = {};
+    const apiUrl = "https://script.google.com/macros/s/AKfycbwSmzt8wTuYDF3eTMw57X8Hhu-Ybs6Od5udOBIsqoFZz1q4O1YTDrhcF8ruffYfBhJC/exec";
 
     function selectCollaborator(nome) {
         selectedCollaborator = nome;
         document.getElementById('collaborators').classList.add('hidden');
         document.getElementById('selector').classList.remove('hidden');
-        document.getElementById('selectedCollaborator').innerText = `Agendamento - ${nome}`;
+        document.getElementById('selectedCollaborator').innerText = Agendamento - ${nome};
     }
 
     function showMonth() {
@@ -181,16 +187,16 @@
 
         const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
         for (const day of weekDays) {
-            grid.innerHTML += `<div class='header-cell'>${day}</div>`;
+            grid.innerHTML += <div class='header-cell'>${day}</div>;
         }
 
         for (let i = 0; i < firstDay; i++) {
-            grid.innerHTML += `<div></div>`;
+            grid.innerHTML += <div></div>;
         }
 
         for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = `${year}-${month + 1}-${d}`;
-            grid.innerHTML += `<div class='day-card' onclick="openDay('${dateStr}')">${d}</div>`;
+            const dateStr = ${year}-${month+1}-${d};
+            grid.innerHTML += <div class='day-card' onclick="openDay('${dateStr}')">${d}</div>;
         }
 
         calendar.appendChild(grid);
@@ -211,7 +217,7 @@
         for (let i = 0; i < 5; i++) {
             const date = new Date(today);
             date.setDate(today.getDate() + i);
-            const dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+            const dateStr = ${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()};
             weekDates.push({ label: weekDays[i], dateStr });
         }
 
@@ -222,7 +228,7 @@
             horarios.forEach(hora => {
                 const btn = document.createElement('div');
                 btn.className = 'hour';
-                btn.innerText = `${day.label} ${hora}`;
+                btn.innerText = ${day.label} ${hora};
                 btn.onclick = () => selectHour(day.dateStr, hora);
                 grid.appendChild(btn);
             });
@@ -234,7 +240,7 @@
     function openDay(dateStr) {
         clearScreens();
         const dayHours = document.getElementById('dayHours');
-        dayHours.innerHTML = `<h2>Horários do dia ${dateStr}</h2>`;
+        dayHours.innerHTML = <h2>Horários do dia ${dateStr}</h2>;
 
         horarios.forEach(hora => {
             const hourBtn = document.createElement('div');
@@ -246,7 +252,7 @@
 
         const back = document.createElement('div');
         back.className = 'back-button';
-        back.innerHTML = `<button onclick="showMonth()">⬅ Voltar para o Calendário</button>`;
+        back.innerHTML = <button onclick="showMonth()">⬅ Voltar para o Calendário</button>;
         dayHours.appendChild(back);
 
         dayHours.classList.remove('hidden');
@@ -319,4 +325,41 @@
 </script>
 
 </body>
-</html>
+</html> 
+
+Em seguida criei a planilha no google sheets com as colunas:
+Data/Hora	Colaborador	Data	Hora	Nome	Empreendimento	Local
+
+No app script foi inserido o código:
+function doPost(e) {
+  const sheet = SpreadsheetApp.openById('https://docs.google.com/spreadsheets/d/1vhTFcwq6i75O1y-ag6xzECubiCJlCv3ym5mt__4sX8c/').getSheetByName('Agendamentos');
+  
+  const data = JSON.parse(e.postData.contents);
+  
+  sheet.appendRow([
+    new Date(),
+    data.colaborador,
+    data.data,
+    data.hora,
+    data.nome,
+    data.empreendimento,
+    data.local
+  ]);
+  
+  return ContentService
+    .createTextOutput(JSON.stringify({ result: "Sucesso" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  return ContentService
+    .createTextOutput("API funcionando")
+    .setMimeType(ContentService.MimeType.TEXT);
+} 
+
+Em implementação tem 4 versões a ultima que eu utilizei:
+ ID DE IMPLEMENTAÇÃO:
+AKfycbwSmzt8wTuYDF3eTMw57X8Hhu-Ybs6Od5udOBIsqoFZz1q4O1YTDrhcF8ruffYfBhJC
+
+URL:
+https://script.google.com/macros/s/AKfycbweReU06we2WD-Lpi4WapqYuI4K-ObM25A876Cw13KMy6LtTToUOoB0RuyNU-8y6c51/exec 
