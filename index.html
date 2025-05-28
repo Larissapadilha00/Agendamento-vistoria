@@ -1,372 +1,254 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agendamento de Vistorias</title>
-<style>
-/* (O mesmo CSS que você já possui) */
-:root {
-    --verde-principal: rgb(52, 69, 55);
-    --verde-claro: rgb(72, 95, 75);
-    --branco: #f5f5f5;
-    --cinza: #e0e0e0;
-    --vermelho: #e74c3c;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-    background-color: var(--branco);
-    font-family: Arial, sans-serif;
-    color: var(--verde-principal);
-    padding: 20px;
-}
-h1, h2 { text-align: center; margin-bottom: 20px; }
-.card-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-.card {
-    background-color: var(--verde-principal);
-    color: var(--branco);
-    padding: 20px;
-    border-radius: 12px;
-    cursor: pointer;
-    width: 180px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transition: transform 0.3s;
-}
-.card:hover { transform: scale(1.05); }
-.hidden { display: none; }
-.selector, .back-button { margin-top: 20px; text-align: center; }
-.selector button, .back-button button {
-    background-color: var(--verde-claro);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin: 5px;
-}
-.selector button:hover, .back-button button:hover {
-    background-color: var(--verde-principal);
-}
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-}
-.header-cell {
-    font-weight: bold;
-    text-align: center;
-}
-.day-card {
-    background-color: var(--cinza);
-    padding: 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: center;
-    position: relative;
-}
-.day-card:hover {
-    background-color: var(--verde-claro);
-    color: white;
-}
-.icon-red {
-    color: var(--vermelho);
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    font-size: 18px;
-}
-.hour {
-    background-color: var(--cinza);
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: center;
-    margin: 5px;
-}
-.hour:hover {
-    background-color: var(--verde-claro);
-    color: white;
-}
-.form {
-    margin-top: 20px;
-    display: none;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: var(--cinza);
-    padding: 20px;
-    border-radius: 12px;
-}
-.form input {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-}
-.form button {
-    background-color: var(--verde-principal);
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-.form button:hover {
-    background-color: var(--verde-claro);
-}
-.no-available {
-    color: var(--vermelho);
-    text-align: center;
-    margin-top: 10px;
-}
-.week-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-    margin-top: 20px;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Agendamento de Vistoria</title>
+    <style>
+        body {
+            background-color: rgb(52, 69, 55);
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            background-color: #3a4f43;
+            padding: 20px;
+            margin: 10px;
+            display: inline-block;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 200px;
+        }
+        .hidden {
+            display: none;
+        }
+        button {
+            background-color: #2e4035;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #49695a;
+        }
+        select, input {
+            padding: 5px;
+            border-radius: 5px;
+            border: none;
+        }
+        .alert {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Agendamento de Vistoria</h1>
 
-<h1>Agendamento de Vistorias</h1>
-<div class="card-container" id="collaborators">
-    <div class="card" onclick="selectCollaborator('Cleber')">Cleber</div>
-    <div class="card" onclick="selectCollaborator('Devilson')">Devilson</div>
-</div>
+        <!-- Seleção de Colaborador -->
+        <div id="select-colaborador">
+            <div class="card" onclick="selecionarColaborador('Cleber')">
+                <h2>Cleber</h2>
+            </div>
+            <div class="card" onclick="selecionarColaborador('Devilson')">
+                <h2>Devilson</h2>
+            </div>
+        </div>
 
-<div class="selector hidden" id="selector">
-    <h2 id="selectedCollaborator"></h2>
-    <button onclick="showWeek()">Semana</button>
-    <button onclick="showMonth()">Mês</button>
-</div>
+        <!-- Seleção de Semana ou Mês -->
+        <div id="select-periodo" class="hidden">
+            <h2>Escolha o Período</h2>
+            <button onclick="selecionarPeriodo('semana')">Semana</button>
+            <button onclick="selecionarPeriodo('mes')">Mês</button>
+            <br><br>
+            <button onclick="voltarParaColaborador()">Voltar</button>
+        </div>
 
-<div class="back-button hidden" id="backButton">
-    <button onclick="goBack()">⬅ Voltar</button>
-</div>
+        <!-- Seleção de Data e Hora -->
+        <div id="select-data-hora" class="hidden">
+            <h2>Escolha a Data e o Horário</h2>
+            <input type="date" id="data"><br><br>
+            <select id="hora"></select><br><br>
+            <div id="sem-horarios" class="alert hidden">Sem horários disponíveis!</div>
+            <button onclick="voltarParaPeriodo()">Voltar</button>
+            <button onclick="proximoParaDados()">Próximo</button>
+        </div>
 
-<div class="calendar hidden" id="calendar"></div>
-<div class="day-hours hidden" id="dayHours"></div>
-<div class="week-view hidden" id="weekView"></div>
+        <!-- Dados do Cliente -->
+        <div id="dados-cliente" class="hidden">
+            <h2>Seus Dados</h2>
+            <input type="text" id="nome" placeholder="Seu nome"><br><br>
+            <input type="text" id="empreendimento" placeholder="Empreendimento"><br><br>
+            <input type="text" id="local" placeholder="Local"><br><br>
+            <button onclick="voltarParaDataHora()">Voltar</button>
+            <button onclick="confirmarAgendamento()">Confirmar</button>
+        </div>
 
-<div class="form" id="form">
-    <input type="text" id="nome" placeholder="Nome do responsável">
-    <input type="text" id="empreendimento" placeholder="Empreendimento">
-    <input type="text" id="local" placeholder="Local (Ex: Ap 101)">
-    <button onclick="book()">Agendar</button>
-</div>
+        <!-- Confirmação -->
+        <div id="confirmacao" class="hidden">
+            <h2>Agendamento realizado com sucesso!</h2>
+            <button onclick="voltarParaInicio()">Novo Agendamento</button>
+        </div>
+    </div>
 
-<script>
-    const horarios = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00"];
-    let selectedCollaborator = '';
-    let selectedDate = '';
-    let selectedHour = '';
-    const agendamentos = {};
+    <script>
+        const API_URL = "SUA_URL_AQUI"; // Insira sua URL aqui
+        const horarios = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00"];
+        const agendamentos = {};
 
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyS1u77bnO143S71X0pyImAUu55oeqMIsz236uEM1MN0XC3cbDFunjm04cPT-u2DumW/exec';
+        let colaboradorSelecionado = '';
+        let periodoSelecionado = '';
 
-    function selectCollaborator(nome) {
-        selectedCollaborator = nome;
-        document.getElementById('collaborators').classList.add('hidden');
-        document.getElementById('selector').classList.remove('hidden');
-        document.getElementById('selectedCollaborator').innerText = `Agendamento - ${nome}`;
-    }
-
-    function showMonth() {
-        clearScreens();
-        const calendar = document.getElementById('calendar');
-        calendar.innerHTML = '';
-        calendar.classList.remove('hidden');
-        document.getElementById('backButton').classList.remove('hidden');
-
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = today.getMonth();
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-        const grid = document.createElement('div');
-        grid.className = 'calendar-grid';
-
-        const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
-        for (const day of weekDays) {
-            grid.innerHTML += `<div class='header-cell'>${day}</div>`;
+        function selecionarColaborador(colab) {
+            colaboradorSelecionado = colab;
+            mostrar('select-colaborador', false);
+            mostrar('select-periodo', true);
         }
 
-        for (let i = 0; i < firstDay; i++) {
-            grid.innerHTML += `<div></div>`;
+        function selecionarPeriodo(periodo) {
+            periodoSelecionado = periodo;
+            mostrar('select-periodo', false);
+            mostrar('select-data-hora', true);
+            preencherHoras();
         }
 
-        for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = `${year}-${month + 1}-${d}`;
-            const hasAvailable = horarios.some(h => !agendamentos[`${selectedCollaborator}-${dateStr}-${h}`]);
-            const icon = hasAvailable ? '' : '<div class="icon-red">🔴</div>';
-            grid.innerHTML += `<div class='day-card' onclick="openDay('${dateStr}')">${icon}${d}</div>`;
+        function preencherHoras() {
+            const selectHora = document.getElementById('hora');
+            selectHora.innerHTML = '';
+            horarios.forEach(h => {
+                const option = document.createElement('option');
+                option.value = h;
+                option.textContent = h;
+                selectHora.appendChild(option);
+            });
+            document.getElementById('sem-horarios').classList.add('hidden');
         }
 
-        calendar.appendChild(grid);
-    }
+        document.getElementById('data').addEventListener('change', () => {
+            const data = document.getElementById('data').value;
+            const selectHora = document.getElementById('hora');
+            selectHora.innerHTML = '';
 
-    function showWeek() {
-        clearScreens();
-        const weekView = document.getElementById('weekView');
-        weekView.innerHTML = '<h2>Semana Atual</h2>';
-        weekView.classList.remove('hidden');
-        document.getElementById('backButton').classList.remove('hidden');
-
-        const today = new Date();
-        const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
-        const weekDates = [];
-
-        today.setDate(today.getDate() - today.getDay() + 1);
-        for (let i = 0; i < 5; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() + i);
-            const dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
-            weekDates.push({ label: weekDays[i], dateStr });
-        }
-
-        const grid = document.createElement('div');
-        grid.className = 'week-grid';
-
-        weekDates.forEach(day => {
-            const column = document.createElement('div');
-            const header = document.createElement('div');
-            header.className = 'header-cell';
-            header.innerText = day.label;
-            column.appendChild(header);
-
-            let available = false;
-            horarios.forEach(hora => {
-                const key = `${selectedCollaborator}-${day.dateStr}-${hora}`;
-                if (!agendamentos[key]) {
-                    available = true;
-                    const btn = document.createElement('div');
-                    btn.className = 'hour';
-                    btn.innerText = hora;
-                    btn.onclick = () => selectHour(day.dateStr, hora);
-                    column.appendChild(btn);
-                }
+            const disponiveis = horarios.filter(h => {
+                const key = `${colaboradorSelecionado}-${data}-${h}`;
+                return !agendamentos[key];
             });
 
-            if (!available) {
-                const noAvailable = document.createElement('div');
-                noAvailable.className = 'no-available';
-                noAvailable.innerHTML = '🔴';
-                column.appendChild(noAvailable);
-            }
-
-            grid.appendChild(column);
-        });
-
-        weekView.appendChild(grid);
-    }
-
-    function openDay(dateStr) {
-        clearScreens();
-        const dayHours = document.getElementById('dayHours');
-        dayHours.innerHTML = `<h2>Horários do dia ${dateStr}</h2>`;
-        let available = false;
-
-        horarios.forEach(hora => {
-            const key = `${selectedCollaborator}-${dateStr}-${hora}`;
-            if (!agendamentos[key]) {
-                available = true;
-                const hourBtn = document.createElement('div');
-                hourBtn.className = 'hour';
-                hourBtn.innerText = hora;
-                hourBtn.onclick = () => selectHour(dateStr, hora);
-                dayHours.appendChild(hourBtn);
+            if (disponiveis.length === 0) {
+                document.getElementById('sem-horarios').classList.remove('hidden');
+            } else {
+                document.getElementById('sem-horarios').classList.add('hidden');
+                disponiveis.forEach(h => {
+                    const option = document.createElement('option');
+                    option.value = h;
+                    option.textContent = h;
+                    selectHora.appendChild(option);
+                });
             }
         });
 
-        if (!available) {
-            const noAvailable = document.createElement('div');
-            noAvailable.className = 'no-available';
-            noAvailable.innerText = '🔴 Sem horário disponível';
-            dayHours.appendChild(noAvailable);
+        function proximoParaDados() {
+            const data = document.getElementById('data').value;
+            const hora = document.getElementById('hora').value;
+            if (!data || !hora) {
+                alert('Selecione uma data e horário!');
+                return;
+            }
+            mostrar('select-data-hora', false);
+            mostrar('dados-cliente', true);
         }
 
-        const back = document.createElement('div');
-        back.className = 'back-button';
-        back.innerHTML = `<button onclick="showMonth()">⬅ Voltar para o Calendário</button>`;
-        dayHours.appendChild(back);
+        function confirmarAgendamento() {
+            const data = document.getElementById('data').value;
+            const hora = document.getElementById('hora').value;
+            const nome = document.getElementById('nome').value.trim();
+            const empreendimento = document.getElementById('empreendimento').value.trim();
+            const local = document.getElementById('local').value.trim();
 
-        dayHours.classList.remove('hidden');
-    }
+            if (!nome || !empreendimento || !local) {
+                alert('Preencha todos os dados!');
+                return;
+            }
 
-    function selectHour(date, hour) {
-        selectedDate = date;
-        selectedHour = hour;
-        document.getElementById('form').style.display = 'flex';
-    }
+            const registro = {
+                colaborador: colaboradorSelecionado,
+                data: data,
+                hora: hora,
+                nome: nome,
+                empreendimento: empreendimento,
+                local: local
+            };
 
-    function book() {
-        const nome = document.getElementById('nome').value.trim();
-        const empreendimento = document.getElementById('empreendimento').value.trim();
-        const local = document.getElementById('local').value.trim();
-
-        if (!nome || !empreendimento || !local) {
-            alert('Preencha todos os campos!');
-            return;
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify(registro),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(() => {
+                const key = `${colaboradorSelecionado}-${data}-${hora}`;
+                agendamentos[key] = registro;
+                mostrar('dados-cliente', false);
+                mostrar('confirmacao', true);
+            })
+            .catch(() => {
+                alert('Erro ao salvar agendamento');
+            });
         }
 
-        const key = `${selectedCollaborator}-${selectedDate}-${selectedHour}`;
-        agendamentos[key] = { nome, empreendimento, local };
+        function voltarParaColaborador() {
+            mostrar('select-periodo', false);
+            mostrar('select-colaborador', true);
+        }
 
-        sendToSheet({
-            colaborador: selectedCollaborator,
-            data: selectedDate,
-            hora: selectedHour,
-            nome,
-            empreendimento,
-            local
-        });
+        function voltarParaPeriodo() {
+            mostrar('select-data-hora', false);
+            mostrar('select-periodo', true);
+        }
 
-        alert('Agendado com sucesso!');
-        document.getElementById('form').style.display = 'none';
-        document.getElementById('nome').value = '';
-        document.getElementById('empreendimento').value = '';
-        document.getElementById('local').value = '';
+        function voltarParaDataHora() {
+            mostrar('dados-cliente', false);
+            mostrar('select-data-hora', true);
+        }
 
-        clearScreens();
-        document.getElementById('selector').classList.remove('hidden');
-    }
+        function voltarParaInicio() {
+            mostrar('confirmacao', false);
+            mostrar('select-colaborador', true);
+        }
 
-    function sendToSheet(data) {
-        fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        }).then(() => {
-            console.log('Enviado ao Google Sheets:', data);
-        }).catch(err => {
-            console.error('Erro ao enviar ao Google Sheets:', err);
-        });
-    }
+        function mostrar(id, exibir) {
+            document.getElementById(id).classList.toggle('hidden', !exibir);
+        }
 
-    function goBack() {
-        clearScreens();
-        document.getElementById('selector').classList.remove('hidden');
-        document.getElementById('backButton').classList.add('hidden');
-    }
+        function loadAgendamentos() {
+            fetch(API_URL)
+                .then(r => r.json())
+                .then(data => {
+                    data.forEach(item => {
+                        const key = `${item.colaborador}-${item.data}-${item.hora}`;
+                        agendamentos[key] = {
+                            nome: item.nome,
+                            empreendimento: item.empreendimento,
+                            local: item.local
+                        };
+                    });
+                    console.log('Agendamentos carregados:', agendamentos);
+                })
+                .catch(() => {
+                    console.error('Erro ao carregar agendamentos');
+                });
+        }
 
-    function clearScreens() {
-        document.getElementById('calendar').classList.add('hidden');
-        document.getElementById('dayHours').classList.add('hidden');
-        document.getElementById('weekView').classList.add('hidden');
-        document.getElementById('form').style.display = 'none';
-    }
-</script>
-
+        window.onload = () => {
+            loadAgendamentos();
+        };
+    </script>
 </body>
 </html>
